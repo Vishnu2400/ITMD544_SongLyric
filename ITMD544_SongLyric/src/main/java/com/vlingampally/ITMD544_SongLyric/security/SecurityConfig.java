@@ -36,8 +36,9 @@ public class SecurityConfig {
                 .formLogin(formLogin -> formLogin.disable())
                 .logout(logout -> logout.disable());
 
-        http.addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
-        http.addFilterBefore(hiveApiKeyAuthenticationFilter, JwtAuthenticationFilter.class);
+        http.addFilterBefore(hiveApiKeyAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
+        http.addFilterBefore(jwtAuthenticationFilter, HiveApiKeyAuthenticationFilter.class);
+
 
 
         return http.build();

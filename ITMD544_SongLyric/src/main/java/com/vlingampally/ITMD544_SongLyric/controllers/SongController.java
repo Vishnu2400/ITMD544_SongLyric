@@ -1,5 +1,6 @@
 package com.vlingampally.ITMD544_SongLyric.controllers;
 
+import com.vlingampally.ITMD544_SongLyric.dto.LyricsRequest;
 import com.vlingampally.ITMD544_SongLyric.dto.SongDTO;
 import com.vlingampally.ITMD544_SongLyric.model.Role;
 import com.vlingampally.ITMD544_SongLyric.model.Song;
@@ -40,8 +41,8 @@ public class SongController {
     // Endpoint to get song title suggestions based on lyrics
     @PostMapping("/suggest-title")
     @Transactional
-    public String getSongTitleSuggestion(@RequestBody String lyrics) {
-        return songService.getSongTitleSuggestion(lyrics);
+    public String getSongTitleSuggestion(@RequestBody LyricsRequest request) {
+        return songService.getSongTitleSuggestion(request.getLyrics());
     }
 
     // Get all songs (visible to everyone)
