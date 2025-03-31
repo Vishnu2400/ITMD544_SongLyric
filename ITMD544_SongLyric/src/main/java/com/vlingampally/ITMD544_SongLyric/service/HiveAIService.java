@@ -11,7 +11,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 import java.util.Collections;
 import java.util.Map;
-import java.util.logging.Logger;
 
 @Service
 public class HiveAIService {

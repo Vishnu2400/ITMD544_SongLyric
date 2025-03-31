@@ -1,0 +1,112 @@
+type Query {
+    getUserSongs: [Song]
+    getSong(id: ID!): Song
+    getComments(songId: ID!): [Comment]
+    getSuggestions(songId: ID!): [Suggestion]
+    getAllSongs: [SongDTO]
+    getAllUsers: [UserDTO]
+    getCurrentUser: UserDTO
+    getUserByUsername(username: String!): UserDTO
+    getCommentsForSong(songId: ID!): [CommentDTO]
+    getAllSuggestions: [SuggestionDTO]
+}
+
+type Mutation {
+    createSong(title: String!, lyrics: String!): Song
+    updateSong(id: ID!, title: String, lyrics: String, status: String): Song
+    deleteSong(id: ID!): Boolean
+    addComment(songId: ID!, content: String!): Comment
+    addSuggestion(songId: ID!, content: String!): Suggestion
+    likeSong(songId: ID!): String
+    suggestTitle(lyricsRequest: LyricsRequestInput!): String
+    register(username: String!, email: String!, password: String!, role: String): String
+    login(authenticationRequest: AuthenticationRequestInput!): String
+    updateUserDetails(email: String!, password: String!): UserDTO
+    addRoleToUser(username: String!, role: String!): UserDTO
+    removeRoleFromUser(username: String!, role: String!): UserDTO
+    modifyUserRole(username: String!, role: String!): UserDTO
+    deleteUser(username: String!): Boolean
+    modifySuggestion(suggestionId: ID!, suggestionText: String!): String
+    deleteSuggestion(suggestionId: ID!): String
+}
+
+input LyricsRequestInput {
+    lyrics: String!
+}
+
+input AuthenticationRequestInput {
+    username: String!
+    password: String!
+}
+
+type Song {
+    id: ID!
+    title: String!
+    lyrics: String!
+    author: User!
+    createdAt: String
+    updatedAt: String
+    likesCount: Int
+    chosenName: String
+    comments: [Comment]
+    suggestions: [Suggestion]
+}
+
+type Comment {
+    id: ID!
+    content: String!
+    author: User!
+    createdAt: String
+}
+
+type Suggestion {
+    id: ID!
+    content: String!
+    author: User!
+    createdAt: String
+}
+
+type User {
+    id: ID!
+    username: String!
+    email: String!
+    roles: [Role!]
+}
+
+type SongDTO {
+    id: ID!
+    title: String!
+    lyrics: String!
+    authorUsername: String!
+    likesCount: Int
+    createdAt: String
+    updatedAt: String
+}
+
+type CommentDTO {
+    id: ID!
+    songTitle: String!
+    commenterUsername: String!
+    commentText: String!
+    timestamp: String
+}
+
+type SuggestionDTO {
+    id: ID!
+    songTitle: String!
+    suggesterUsername: String!
+    suggestionText: String!
+    timestamp: String
+}
+
+type UserDTO {
+    id: ID!
+    username: String!
+    email: String!
+    roles: [Role!]
+}
+
+enum Role {
+    SONG_WRITER
+    CONTRIBUTOR
+}
