@@ -288,17 +288,17 @@ Below is the Entity-Relationship Diagram (ERD) of the database schema:
 ### Live Demo
 
 <!-- Placeholder for Live Demo URL -->
-Add your live demo URL here.
+
 
 ### Demo Script
 
 <!-- Placeholder for Demo Script -->
-Add your demo script showcasing all implemented features.
+
 
 ### Example API Calls
 
 <!-- Placeholder for Example API Calls -->
-Provide a collection of example API calls (Postman collection or equivalent).
+
 
 ## Report
 
