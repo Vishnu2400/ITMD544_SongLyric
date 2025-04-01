@@ -10,8 +10,9 @@ This project is a Spring Boot REST API with GraphQL endpoints for managing song 
 2. [Configuration](#configuration)
 3. [Usage](#usage)
 4. [API Documentation](#api-documentation)
-5. [Demonstration](#demonstration)
-6. [Report](#report)
+5. [Database Schema](#database-schema)
+6. [Demonstration](#demonstration)
+7. [Report](#report)
 
 ## Installation
 
@@ -89,6 +90,13 @@ Detailed API documentation is available through Swagger UI at `http://localhost:
 ### GraphQL API
 
 Use GraphiQL at `http://localhost:8080/graphiql` to interact with the GraphQL API.
+
+## Database Schema
+
+Below is the Entity-Relationship Diagram (ERD) of the database schema:
+
+[ERD Diagram]
+![erd song_lyric](https://github.com/user-attachments/assets/1c5bdf73-a5a4-491a-8e1d-c8c57647d053)
 
 ## Demonstration
 
