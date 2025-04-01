@@ -206,6 +206,16 @@ Detailed API documentation is available through Swagger UI at `http://localhost:
 - **Endpoint:** `GET http://localhost:8080/suggestions/all`
 - **Request Body:** None
 
+[Example of registering a user as SONG_WRITER]
+
+![image](https://github.com/user-attachments/assets/88250fb5-67ec-44c7-8872-302d680cdf82)
+
+[Above user is logged in and received token]
+
+![image](https://github.com/user-attachments/assets/1f89accf-0665-4615-9b3c-c56283fa90c1)
+
+
+
 ### GraphQL API
 
 Use GraphiQL at `http://localhost:8080/graphiql` to interact with the GraphQL API.
@@ -275,6 +285,10 @@ mutation {
   )
 }
 ```
+[example of graphql query for registering a user]
+
+![image](https://github.com/user-attachments/assets/b10bc5ed-0e0c-4657-b694-b2ada22072b8)
+
 
 ## Database Schema
 
