@@ -91,6 +91,191 @@ Detailed API documentation is available through Swagger UI at `http://localhost:
 
 Use GraphiQL at `http://localhost:8080/graphiql` to interact with the GraphQL API.
 
+## Usage
+
+### Accessing the API
+
+- The REST API is accessible at `http://localhost:8080/api`.
+- The GraphQL endpoint is accessible at `http://localhost:8080/graphql`.
+
+## API Documentation
+
+### REST API
+
+Detailed API documentation is available through Swagger UI at `http://localhost:8080/swagger-ui.html`.
+
+#### AuthController
+
+##### Register a new user
+
+- **Endpoint:** `POST http://localhost:8080/auth/register`
+- **Request Body:**
+  ```json
+  {
+    "username": "user123",
+    "email": "user123@example.com",
+    "password": "password123",
+    "role": "SONG_WRITER"
+  }
+  ```
+
+##### Login
+
+- **Endpoint:** `POST http://localhost:8080/auth/login`
+- **Request Body:**
+  ```json
+  {
+    "username": "user123",
+    "password": "password123"
+  }
+  ```
+
+#### SongController
+
+##### Create a new song
+
+- **Endpoint:** `POST http://localhost:8080/songs/create`
+- **Request Body:**
+  ```json
+  {
+    "title": "New Song",
+    "lyrics": "These are the lyrics"
+  }
+  ```
+
+##### Get song title suggestions based on lyrics
+
+- **Endpoint:** `POST http://localhost:8080/songs/suggest-title`
+- **Request Body:**
+  ```json
+  {
+    "lyrics": "These are some lyrics"
+  }
+  ```
+
+##### Get all songs
+
+- **Endpoint:** `GET http://localhost:8080/songs/all`
+- **Request Body:** None
+
+##### Update a song
+
+- **Endpoint:** `PUT http://localhost:8080/songs/update/{songId}`
+- **Request Body:**
+  ```json
+  {
+    "title": "Updated Song Title",
+    "lyrics": "Updated lyrics"
+  }
+  ```
+
+##### Add a like to a song
+
+- **Endpoint:** `POST http://localhost:8080/songs/like/{songId}`
+- **Request Body:** None
+
+#### SuggestionController
+
+##### Add a suggestion to a song
+
+- **Endpoint:** `POST http://localhost:8080/suggestions/add/{songId}`
+- **Request Body:**
+  ```json
+  {
+    "suggestionText": "This is a suggestion"
+  }
+  ```
+
+##### Modify a suggestion
+
+- **Endpoint:** `PUT http://localhost:8080/suggestions/modify/{suggestionId}`
+- **Request Body:**
+  ```json
+  {
+    "suggestionText": "Updated suggestion text"
+  }
+  ```
+
+##### Delete a suggestion
+
+- **Endpoint:** `DELETE http://localhost:8080/suggestions/delete/{suggestionId}`
+- **Request Body:** None
+
+##### Get all suggestions
+
+- **Endpoint:** `GET http://localhost:8080/suggestions/all`
+- **Request Body:** None
+
+### GraphQL API
+
+Use GraphiQL at `http://localhost:8080/graphiql` to interact with the GraphQL API.
+
+## Example Queries and Mutations
+
+### 1. Register a New User
+
+```graphql
+mutation {
+  register(
+    username: "user123"
+    email: "user123@example.com"
+    password: "password123"
+    role: "USER"
+  )
+}
+```
+
+### 2. Login
+
+```graphql
+mutation {
+  login(
+    username: "user123"
+    password: "password123"
+  )
+}
+```
+
+### 3. Create a New Song
+
+```graphql
+mutation {
+  createSong(
+    title: "New Song"
+    lyrics: "These are the lyrics"
+  )
+}
+```
+
+### 4. Get All Songs
+
+```graphql
+query {
+  getAllSongs {
+    id
+    title
+    lyrics
+    author {
+      username
+    }
+    createdAt
+    updatedAt
+    likesCount
+  }
+}
+```
+
+### 5. Add a Comment to a Song
+
+```graphql
+mutation {
+  addComment(
+    songId: "1"
+    commentText: "Great song!"
+  )
+}
+```
+
 ## Database Schema
 
 Below is the Entity-Relationship Diagram (ERD) of the database schema:
