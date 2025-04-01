@@ -1,78 +1,42 @@
 package com.vlingampally.ITMD544_SongLyric.controllers;
 
 import com.vlingampally.ITMD544_SongLyric.dto.SuggestionDTO;
-import com.vlingampally.ITMD544_SongLyric.model.*;
-import com.vlingampally.ITMD544_SongLyric.repositories.*;
+import com.vlingampally.ITMD544_SongLyric.model.Suggestion;
+import com.vlingampally.ITMD544_SongLyric.service.SuggestionService;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
-import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/suggestions")
 public class SuggestionController {
 
-    private final SuggestionRepository suggestionRepository;
-    private final SongRepository songRepository;
-    private final UserRepository userRepository;
+    private final SuggestionService suggestionService;
 
-    public SuggestionController(SuggestionRepository suggestionRepository, SongRepository songRepository, UserRepository userRepository) {
-        this.suggestionRepository = suggestionRepository;
-        this.songRepository = songRepository;
-        this.userRepository = userRepository;
+    public SuggestionController(SuggestionService suggestionService) {
+        this.suggestionService = suggestionService;
     }
 
     @PostMapping("/add/{songId}")
     public String addSuggestion(@PathVariable Long songId, @RequestBody Suggestion suggestion, Authentication authentication) {
-        Optional<Users> user = userRepository.findByUsername(authentication.getName());
-        Optional<Song> song = songRepository.findById(songId);
-
-        if (user.isEmpty() || song.isEmpty() || !user.get().getRoles().contains(Role.CONTRIBUTOR)) {
-            return "Permission denied. Only contributors can add suggestions.";
-        }
-
-        suggestion.setSong(song.get());
-        suggestion.setSuggester(user.get());
-        suggestion.setTimestamp(LocalDateTime.now()); // Set the current timestamp
-        suggestionRepository.save(suggestion);
-        return "Suggestion added!";
+        return suggestionService.addSuggestion(songId, suggestion, authentication);
     }
 
     @PutMapping("/modify/{suggestionId}")
     public String modifySuggestion(@PathVariable Long suggestionId, @RequestBody Suggestion newSuggestion, Authentication authentication) {
-        Optional<Users> user = userRepository.findByUsername(authentication.getName());
-        Optional<Suggestion> existingSuggestion = suggestionRepository.findById(suggestionId);
-
-        if (user.isEmpty() || existingSuggestion.isEmpty() || !user.get().getRoles().contains(Role.CONTRIBUTOR)) {
-            return "Permission denied. Only contributors can modify suggestions.";
-        }
-
-        Suggestion suggestion = existingSuggestion.get();
-        suggestion.setSuggestionText(newSuggestion.getSuggestionText());
-        suggestion.setTimestamp(LocalDateTime.now()); // Update the timestamp
-        suggestionRepository.save(suggestion);
-        return "Suggestion modified!";
+        return suggestionService.modifySuggestion(suggestionId, newSuggestion.getSuggestionText(), authentication);
     }
 
     @DeleteMapping("/delete/{suggestionId}")
     public String deleteSuggestion(@PathVariable Long suggestionId, Authentication authentication) {
-        Optional<Users> user = userRepository.findByUsername(authentication.getName());
-        Optional<Suggestion> suggestion = suggestionRepository.findById(suggestionId);
-
-        if (user.isEmpty() || suggestion.isEmpty() || !user.get().getRoles().contains(Role.CONTRIBUTOR)) {
-            return "Permission denied. Only contributors can delete suggestions.";
-        }
-
-        suggestionRepository.delete(suggestion.get());
-        return "Suggestion deleted!";
+        return suggestionService.deleteSuggestion(suggestionId, authentication);
     }
 
     @GetMapping("/all")
     public List<SuggestionDTO> getAllSuggestions() {
-        return suggestionRepository.findAll().stream().map(this::convertToDTO).collect(Collectors.toList());
+        return suggestionService.getAllSuggestions().stream().map(this::convertToDTO).collect(Collectors.toList());
     }
 
     private SuggestionDTO convertToDTO(Suggestion suggestion) {

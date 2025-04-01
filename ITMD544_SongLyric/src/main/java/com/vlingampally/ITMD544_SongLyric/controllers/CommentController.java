@@ -24,9 +24,19 @@ public class CommentController {
         return commentService.addComment(songId, comment, authentication);
     }
 
+    @PutMapping("/modify/{commentId}")
+    public String modifyComment(@PathVariable Long commentId, @RequestBody Comment newComment, Authentication authentication) {
+        return commentService.modifyComment(commentId, newComment.getCommentText(), authentication);
+    }
+
     @GetMapping("/song/{songId}")
     public List<CommentDTO> getCommentsForSong(@PathVariable Long songId) {
         return commentService.getCommentsForSong(songId).stream().map(this::convertToDTO).collect(Collectors.toList());
+    }
+
+    @DeleteMapping("/delete/{commentId}")
+    public String deleteComment(@PathVariable Long commentId, Authentication authentication) {
+        return commentService.deleteComment(commentId, authentication);
     }
 
     private CommentDTO convertToDTO(Comment comment) {

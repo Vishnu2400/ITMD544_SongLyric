@@ -10,7 +10,6 @@ public class SongDTO {
     private int likesCount;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
-    private String chosenName;
 
     // Constructors, getters, and setters
 
@@ -72,11 +71,4 @@ public class SongDTO {
         this.updatedAt = updatedAt;
     }
 
-    public String getChosenName() {
-        return chosenName;
-    }
-
-    public void setChosenName(String chosenName) {
-        this.chosenName = chosenName;
-    }
 }

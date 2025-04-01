@@ -7,8 +7,13 @@ import com.vlingampally.ITMD544_SongLyric.repositories.SongRepository;
 import com.vlingampally.ITMD544_SongLyric.repositories.SuggestionRepository;
 import com.vlingampally.ITMD544_SongLyric.repositories.UserRepository;
 import com.vlingampally.ITMD544_SongLyric.security.JwtService;
+import com.vlingampally.ITMD544_SongLyric.service.AuthService;
 import com.vlingampally.ITMD544_SongLyric.service.SongService;
+import com.vlingampally.ITMD544_SongLyric.service.CommentService;
+import com.vlingampally.ITMD544_SongLyric.service.SuggestionService;
+import com.vlingampally.ITMD544_SongLyric.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.graphql.data.method.annotation.Argument;
 import org.springframework.graphql.data.method.annotation.MutationMapping;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -18,6 +23,7 @@ import org.springframework.stereotype.Controller;
 
 import java.time.LocalDateTime;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 
@@ -28,192 +34,126 @@ public class MutationResolver {
     private final UserRepository userRepository;
     private final SuggestionRepository suggestionRepository;
     private final SongService songService;
+    private final CommentService commentService;
+    private final SuggestionService suggestionService;
+    private final UserService userService;
+    private final AuthService authService;
     private final PasswordEncoder passwordEncoder;
     private final AuthenticationManager authenticationManager;
     private final JwtService jwtService;
 
     @Autowired
-    public MutationResolver(SongRepository songRepository, UserRepository userRepository, SuggestionRepository suggestionRepository, SongService songService,
-                            PasswordEncoder passwordEncoder, AuthenticationManager authenticationManager, JwtService jwtService) {
+    public MutationResolver(SongRepository songRepository, UserRepository userRepository, SuggestionRepository suggestionRepository,
+                            SongService songService, CommentService commentService, SuggestionService suggestionService,
+                            UserService userService, AuthService authService, PasswordEncoder passwordEncoder,
+                            AuthenticationManager authenticationManager, JwtService jwtService) {
         this.songRepository = songRepository;
         this.userRepository = userRepository;
         this.suggestionRepository = suggestionRepository;
         this.songService = songService;
+        this.commentService = commentService;
+        this.suggestionService = suggestionService;
+        this.userService = userService;
+        this.authService = authService;
         this.passwordEncoder = passwordEncoder;
         this.authenticationManager = authenticationManager;
         this.jwtService = jwtService;
     }
 
     @MutationMapping
-    public String register(String username, String email, String password, String roleStr) {
-        if (userRepository.findByUsername(username).isPresent()) {
-            return "Username already taken";
-        }
-
-        if (userRepository.findByEmail(email).isPresent()) {
-            return "Email already in use";
-        }
-
-        Set<Role> roles = new HashSet<>();
-        if (roleStr != null) {
-            try {
-                roles.add(Role.valueOf(roleStr));
-            } catch (IllegalArgumentException e) {
-                return "Invalid role provided";
-            }
-        } else {
-            roles.add(Role.CONTRIBUTOR);
-        }
-
-        Users user = new Users();
-        user.setUsername(username);
-        user.setEmail(email);
-        user.setPassword(passwordEncoder.encode(password));
-        user.setRoles(roles);
-
-        userRepository.save(user);
-
-        return "User registered successfully";
+    public Map<String, String> register(@Argument String username, @Argument String email, @Argument String password, @Argument String roleStr) {
+        return authService.register(username, email, password, roleStr);
     }
 
     @MutationMapping
-    public String login(AuthenticationRequest authenticationRequest) {
-        String username = authenticationRequest.getUsername();
-        String password = authenticationRequest.getPassword();
-
-        authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(username, password));
-
-        Users user = userRepository.findByUsername(username)
-                .orElseThrow(() -> new RuntimeException("User not found"));
-
-        String token = jwtService.generateToken(user);
-
-        return token;
+    public Map<String, String> login(@Argument String username, @Argument String password) {
+        return authService.login(username, password);
     }
 
     @MutationMapping
-    public UserDTO updateUserDetails(Authentication authentication, String email, String password) {
-        Optional<Users> userOpt = userRepository.findByUsername(authentication.getName());
-        if (userOpt.isPresent()) {
-            Users user = userOpt.get();
-            user.setEmail(email);
-            user.setPassword(passwordEncoder.encode(password));  // password should be encrypted before updating
-            userRepository.save(user);
-            return convertToDTO(user);
-        }
-        return null;
+    public String createSong(@Argument String title, @Argument String lyrics, Authentication authentication) {
+        Song song = new Song();
+        song.setTitle(title);
+        song.setLyrics(lyrics);
+
+        return songService.createSong(song, authentication);
     }
 
     @MutationMapping
-    public UserDTO addRoleToUser(String username, String roleStr) {
-        Optional<Users> userOpt = userRepository.findByUsername(username);
-        if (userOpt.isPresent()) {
-            Users user = userOpt.get();
-            try {
-                Role role = Role.valueOf(roleStr);
-                user.getRoles().add(role);
-                userRepository.save(user);
-                return convertToDTO(user);
-            } catch (IllegalArgumentException e) {
-                throw new RuntimeException("Invalid role provided");
-            }
-        }
-        return null;
+    public String updateSong(@Argument Long id, @Argument String title, @Argument String lyrics, Authentication authentication) {
+        Song updatedSong = new Song();
+        updatedSong.setTitle(title);
+        updatedSong.setLyrics(lyrics);
+        return songService.updateSong(id, updatedSong, authentication);
     }
 
     @MutationMapping
-    public UserDTO removeRoleFromUser(String username, String roleStr) {
-        Optional<Users> userOpt = userRepository.findByUsername(username);
-        if (userOpt.isPresent()) {
-            Users user = userOpt.get();
-            try {
-                Role role = Role.valueOf(roleStr);
-                user.getRoles().remove(role);
-                userRepository.save(user);
-                return convertToDTO(user);
-            } catch (IllegalArgumentException e) {
-                throw new RuntimeException("Invalid role provided");
-            }
-        }
-        return null;
+    public String deleteSong(@Argument Long id, Authentication authentication) {
+        return songService.deleteSong(id, authentication);
     }
 
     @MutationMapping
-    public UserDTO modifyUserRole(String username, String roleStr) {
-        Optional<Users> userOpt = userRepository.findByUsername(username);
-        if (userOpt.isPresent()) {
-            Users user = userOpt.get();
-            user.getRoles().clear();  // Clear existing roles
-            try {
-                Role role = Role.valueOf(roleStr);
-                user.getRoles().add(role);  // Add the new role
-                userRepository.save(user);
-                return convertToDTO(user);
-            } catch (IllegalArgumentException e) {
-                throw new RuntimeException("Invalid role provided");
-            }
-        }
-        return null;
+    public String addComment(@Argument Long songId, @Argument String commentText, Authentication authentication) {
+        Comment comment = new Comment();
+        comment.setCommentText(commentText);
+        return commentService.addComment(songId, comment, authentication);
     }
 
     @MutationMapping
-    public Boolean deleteUser(String username) {
-        Optional<Users> userOpt = userRepository.findByUsername(username);
-        if (userOpt.isPresent()) {
-            userRepository.delete(userOpt.get());  // delete user if found
-            return true;
-        }
-        return false;
+    public String modifyComment(@Argument Long commentId, @Argument String commentText, Authentication authentication) {
+        return commentService.modifyComment(commentId, commentText, authentication);
     }
 
     @MutationMapping
-    public String likeSong(Long songId, Authentication authentication) {
-        Optional<Users> userOpt = userRepository.findByUsername(authentication.getName());
-        Optional<Song> songOpt = songRepository.findById(songId);
-
-        if (userOpt.isEmpty() || songOpt.isEmpty() ||
-                (!userOpt.get().getRoles().contains(Role.CONTRIBUTOR) && !userOpt.get().getRoles().contains(Role.SONG_WRITER))) {
-            return "Permission denied. Only contributors and song writers can like songs.";
-        }
-
-        Song existingSong = songOpt.get();
-        existingSong.setLikesCount(existingSong.getLikesCount() + 1);
-        songRepository.save(existingSong);
-        return "Song liked!";
+    public String deleteComment(@Argument Long commentId, Authentication authentication) {
+        return commentService.deleteComment(commentId, authentication);
     }
 
     @MutationMapping
-    public String suggestTitle(LyricsRequest lyricsRequest) {
-        return songService.getSongTitleSuggestion(lyricsRequest.getLyrics());
-    }
-
-    @MutationMapping
-    public String modifySuggestion(Long suggestionId, String suggestionText, Authentication authentication) {
-        Optional<Users> userOpt = userRepository.findByUsername(authentication.getName());
-        Optional<Suggestion> suggestionOpt = suggestionRepository.findById(suggestionId);
-
-        if (userOpt.isEmpty() || suggestionOpt.isEmpty() || !userOpt.get().getRoles().contains(Role.CONTRIBUTOR)) {
-            return "Permission denied. Only contributors can modify suggestions.";
-        }
-
-        Suggestion suggestion = suggestionOpt.get();
+    public String addSuggestion(@Argument Long songId, @Argument String suggestionText, Authentication authentication) {
+        Suggestion suggestion = new Suggestion();
         suggestion.setSuggestionText(suggestionText);
-        suggestion.setTimestamp(LocalDateTime.now());  // Update the timestamp
-        suggestionRepository.save(suggestion);
-        return "Suggestion modified!";
+        return suggestionService.addSuggestion(songId, suggestion, authentication);
     }
 
     @MutationMapping
-    public String deleteSuggestion(Long suggestionId, Authentication authentication) {
-        Optional<Users> userOpt = userRepository.findByUsername(authentication.getName());
-        Optional<Suggestion> suggestionOpt = suggestionRepository.findById(suggestionId);
+    public String modifySuggestion(@Argument Long suggestionId, @Argument String suggestionText, Authentication authentication) {
+        return suggestionService.modifySuggestion(suggestionId, suggestionText, authentication);
+    }
 
-        if (userOpt.isEmpty() || suggestionOpt.isEmpty() || !userOpt.get().getRoles().contains(Role.CONTRIBUTOR)) {
-            return "Permission denied. Only contributors can delete suggestions.";
-        }
+    @MutationMapping
+    public String deleteSuggestion(@Argument Long suggestionId, Authentication authentication) {
+        return suggestionService.deleteSuggestion(suggestionId, authentication);
+    }
 
-        suggestionRepository.delete(suggestionOpt.get());
-        return "Suggestion deleted!";
+    @MutationMapping
+    public UserDTO addRoleToUser(@Argument String username, @Argument String role) {
+        Users user = userService.addRoleToUser(username, Role.valueOf(role));
+        return convertToDTO(user);
+    }
+
+    @MutationMapping
+    public UserDTO removeRoleFromUser(@Argument String username, @Argument String role) {
+        Users user = userService.removeRoleFromUser(username, Role.valueOf(role));
+        return convertToDTO(user);
+    }
+
+    @MutationMapping
+    public UserDTO updateUserName(@Argument String username, @Argument String newName) {
+        Users user = userService.updateUserName(username, newName);
+        return convertToDTO(user);
+    }
+
+    @MutationMapping
+    public UserDTO updateUserEmail(@Argument String username, @Argument String newEmail) {
+        Users user = userService.updateUserEmail(username, newEmail);
+        return convertToDTO(user);
+    }
+
+    @MutationMapping
+    public UserDTO updateUserPassword(@Argument String username, @Argument String newPassword) {
+        Users user = userService.updateUserPassword(username, newPassword);
+        return convertToDTO(user);
     }
 
     private UserDTO convertToDTO(Users user) {

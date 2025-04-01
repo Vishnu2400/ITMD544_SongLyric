@@ -1,15 +1,15 @@
 package com.vlingampally.ITMD544_SongLyric.resolvers;
 
-import com.vlingampally.ITMD544_SongLyric.dto.CommentDTO;
-import com.vlingampally.ITMD544_SongLyric.dto.SongDTO;
-import com.vlingampally.ITMD544_SongLyric.dto.SuggestionDTO;
-import com.vlingampally.ITMD544_SongLyric.dto.UserDTO;
+import com.vlingampally.ITMD544_SongLyric.dto.*;
+import com.vlingampally.ITMD544_SongLyric.service.*;
 import com.vlingampally.ITMD544_SongLyric.model.*;
-import com.vlingampally.ITMD544_SongLyric.repositories.*;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.security.core.userdetails.User;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Controller;
+import org.springframework.graphql.data.method.annotation.Argument;
 import org.springframework.graphql.data.method.annotation.QueryMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 
 import java.util.List;
 import java.util.Optional;
@@ -18,88 +18,104 @@ import java.util.stream.Collectors;
 @Controller
 public class QueryResolver {
 
-    private final SongRepository songRepository;
-    private final UserRepository userRepository;
-    private final CommentRepository commentRepository;
-    private final SuggestionRepository suggestionRepository;
+    @Autowired
+    private SongService songService;
 
-    public QueryResolver(SongRepository songRepository, UserRepository userRepository, CommentRepository commentRepository, SuggestionRepository suggestionRepository) {
-        this.songRepository = songRepository;
-        this.userRepository = userRepository;
-        this.commentRepository = commentRepository;
-        this.suggestionRepository = suggestionRepository;
-    }
+    @Autowired
+    private CommentService commentService;
+
+    @Autowired
+    private SuggestionService suggestionService;
+
+    @Autowired
+    private UserService userService;
 
     @QueryMapping
     public List<SongDTO> getAllSongs() {
-        return songRepository.findAll().stream().map(this::convertToDTO).collect(Collectors.toList());
+        List<Song> songs = songService.getAllSongs();
+        // Convert each Song to SongDTO
+        return songs.stream().map(this::convertToDto).collect(Collectors.toList());
     }
 
     @QueryMapping
-    public List<UserDTO> getAllUsers() {
-        return userRepository.findAll().stream().map(this::convertToDTO).collect(Collectors.toList());
+    public Optional<SongDTO> getSongById(@Argument Long id) {
+        Optional<Song> song = songService.getSongById(id);
+        return song.map(this::convertToDto);
+    }
+
+    //get all my songs
+    @QueryMapping
+    public List<SongDTO> getMySongs(@AuthenticationPrincipal UserDetails userDetails) {
+        if (userDetails == null) {
+            throw new RuntimeException("No authenticated user found.");
+        }
+
+        Users user = userService.getCurrentUser(userDetails.getUsername())
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        List<Song> songs = songService.getSongsByUser(user);
+        return songs.stream().map(this::convertToDto).collect(Collectors.toList());
     }
 
     @QueryMapping
-    public UserDTO getCurrentUser(@AuthenticationPrincipal User user) {
-        Optional<Users> currentUser = userRepository.findByUsername(user.getUsername());
-        return currentUser.map(this::convertToDTO).orElse(null);
+    public String getSongTitleSuggestion(@Argument LyricsRequest request) {
+        String songTitles = songService.getSongTitleSuggestion(request.getLyrics());
+
+        // Remove unwanted newlines and additional spaces
+        String cleanTitles = songTitles.replaceAll("\\n|\\r", " ");  // Replace all newline characters (both \n and \r) with a space
+        cleanTitles = cleanTitles.replaceAll("\\s{2,}", " ").trim();  // Replace multiple spaces with a single space
+
+        return cleanTitles;
     }
 
-    @QueryMapping
-    public UserDTO getUserByUsername(String username) {
-        Optional<Users> user = userRepository.findByUsername(username);
-        return user.map(this::convertToDTO).orElse(null);
-    }
 
     @QueryMapping
-    public List<CommentDTO> getCommentsForSong(Long songId) {
-        return commentRepository.findAllBySongId(songId).stream().map(this::convertToDTO).collect(Collectors.toList());
+    public List<CommentDTO> getCommentsForSong(@Argument Long songId) {
+        List<Comment> comments = commentService.getCommentsForSong(songId);
+        return comments.stream().map(this::convertToDto).collect(Collectors.toList());
     }
 
     @QueryMapping
     public List<SuggestionDTO> getAllSuggestions() {
-        return suggestionRepository.findAll().stream().map(this::convertToDTO).collect(Collectors.toList());
+        List<Suggestion> suggestions = suggestionService.getAllSuggestions();
+        return suggestions.stream().map(this::convertToDto).collect(Collectors.toList());
     }
 
-    private SongDTO convertToDTO(Song song) {
-        SongDTO songDTO = new SongDTO();
-        songDTO.setId(song.getId());
-        songDTO.setTitle(song.getTitle());
-        songDTO.setLyrics(song.getLyrics());
-        songDTO.setAuthorUsername(song.getAuthor().getUsername());
-        songDTO.setLikesCount(song.getLikesCount());
-        songDTO.setCreatedAt(song.getCreatedAt());
-        songDTO.setUpdatedAt(song.getUpdatedAt());
-        return songDTO;
+    @QueryMapping
+    public List<SuggestionDTO> getSuggestionsForSong(@Argument Long songId) {
+        List<Suggestion> suggestions = suggestionService.findAllBySongId(songId);
+        return suggestions.stream().map(this::convertToDto).collect(Collectors.toList());
     }
 
-    private UserDTO convertToDTO(Users user) {
-        UserDTO userDTO = new UserDTO();
-        userDTO.setId(user.getId());
-        userDTO.setUsername(user.getUsername());
-        userDTO.setEmail(user.getEmail());
-        userDTO.setRoles(user.getRoles());
-        return userDTO;
+    private SongDTO convertToDto(Song song) {
+        SongDTO songDto = new SongDTO();
+        songDto.setId(song.getId());
+        songDto.setTitle(song.getTitle());
+        songDto.setLyrics(song.getLyrics());
+        songDto.setAuthorUsername(song.getAuthor().getUsername());
+        songDto.setLikesCount(song.getLikesCount());
+        songDto.setCreatedAt(song.getCreatedAt());
+        songDto.setUpdatedAt(song.getUpdatedAt());
+        return songDto;
     }
 
-    private CommentDTO convertToDTO(Comment comment) {
-        CommentDTO commentDTO = new CommentDTO();
-        commentDTO.setId(comment.getId());
-        commentDTO.setSongTitle(comment.getSong().getTitle());
-        commentDTO.setCommenterUsername(comment.getCommenter().getUsername());
-        commentDTO.setCommentText(comment.getCommentText());
-        commentDTO.setTimestamp(comment.getTimestamp());
-        return commentDTO;
+    private CommentDTO convertToDto(Comment comment) {
+        CommentDTO commentDto = new CommentDTO();
+        commentDto.setId(comment.getId());
+        commentDto.setSongTitle(comment.getSong().getTitle());
+        commentDto.setCommenterUsername(comment.getCommenter().getUsername());
+        commentDto.setCommentText(comment.getCommentText());
+        commentDto.setTimestamp(comment.getTimestamp());
+        return commentDto;
     }
 
-    private SuggestionDTO convertToDTO(Suggestion suggestion) {
-        SuggestionDTO suggestionDTO = new SuggestionDTO();
-        suggestionDTO.setId(suggestion.getId());
-        suggestionDTO.setSongTitle(suggestion.getSong().getTitle());
-        suggestionDTO.setSuggesterUsername(suggestion.getSuggester().getUsername());
-        suggestionDTO.setSuggestionText(suggestion.getSuggestionText());
-        suggestionDTO.setTimestamp(suggestion.getTimestamp());
-        return suggestionDTO;
+    private SuggestionDTO convertToDto(Suggestion suggestion) {
+        SuggestionDTO suggestionDto = new SuggestionDTO();
+        suggestionDto.setId(suggestion.getId());
+        suggestionDto.setSongTitle(suggestion.getSong().getTitle());
+        suggestionDto.setSuggesterUsername(suggestion.getSuggester().getUsername());
+        suggestionDto.setSuggestionText(suggestion.getSuggestionText());
+        suggestionDto.setTimestamp(suggestion.getTimestamp());
+        return suggestionDto;
     }
 }

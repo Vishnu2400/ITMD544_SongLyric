@@ -21,6 +21,8 @@ public class HiveApiKeyAuthenticationFilter extends OncePerRequestFilter {
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
             throws ServletException, IOException {
+
+
         String hiveApiKeyHeader = request.getHeader("Authorization");
         if (hiveApiKeyHeader != null && hiveApiKeyHeader.equals("Token " + hiveApiKey)) {
             HiveApiKeyAuthenticationToken authToken = new HiveApiKeyAuthenticationToken(hiveApiKeyHeader);

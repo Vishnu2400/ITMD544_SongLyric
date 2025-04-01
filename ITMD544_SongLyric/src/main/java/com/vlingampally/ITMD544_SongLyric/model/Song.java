@@ -15,7 +15,6 @@ public class Song {
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
     private int likesCount;
-    private String chosenName;
 
     // Getters and Setters
 
@@ -75,13 +74,5 @@ public class Song {
 
     public void setLikesCount(int likesCount) {
         this.likesCount = likesCount;
-    }
-
-    public String getChosenName() {
-        return chosenName;
-    }
-
-    public void setChosenName(String chosenName) {
-        this.chosenName = chosenName;
     }
 }

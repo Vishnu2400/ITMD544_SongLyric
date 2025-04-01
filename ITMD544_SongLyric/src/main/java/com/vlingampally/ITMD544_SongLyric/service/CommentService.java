@@ -30,15 +30,16 @@ public class CommentService {
 
     @Transactional
     public String addComment(Long songId, Comment comment, Authentication authentication) {
-        Optional<Users> user = userRepository.findByUsername(authentication.getName());
-        Optional<Song> song = songRepository.findById(songId);
+        Optional<Users> userOptional = userRepository.findByUsername(authentication.getName());
+        Optional<Song> songOptional = songRepository.findById(songId);
 
-        if (user.isEmpty() || song.isEmpty() || !user.get().getRoles().contains(Role.CONTRIBUTOR) && !user.get().getRoles().contains(Role.SONG_WRITER)) {
+        if (userOptional.isEmpty() || songOptional.isEmpty() ||
+                (!userOptional.get().getRoles().contains(Role.CONTRIBUTOR) && !userOptional.get().getRoles().contains(Role.SONG_WRITER))) {
             return "Permission denied. Only contributors and song writers can add comments.";
         }
 
-        comment.setSong(song.get());
-        comment.setCommenter(user.get());
+        comment.setSong(songOptional.get());
+        comment.setCommenter(userOptional.get());
         comment.setTimestamp(LocalDateTime.now()); // Set the current timestamp
         commentRepository.save(comment);
         return "Comment added!";
@@ -47,5 +48,45 @@ public class CommentService {
     @Transactional(readOnly = true)
     public List<Comment> getCommentsForSong(Long songId) {
         return commentRepository.findAllBySongId(songId);
+    }
+
+    @Transactional
+    public String modifyComment(Long commentId, String commentText, Authentication authentication) {
+        Optional<Users> userOptional = userRepository.findByUsername(authentication.getName());
+        Optional<Comment> commentOptional = commentRepository.findById(commentId);
+
+        if (userOptional.isEmpty() || commentOptional.isEmpty() ||
+                (!userOptional.get().getRoles().contains(Role.CONTRIBUTOR) && !userOptional.get().getRoles().contains(Role.SONG_WRITER))) {
+            return "Permission denied. Only contributors and song writers can modify comments.";
+        }
+
+        Comment comment = commentOptional.get();
+        if (!comment.getCommenter().equals(userOptional.get())) {
+            return "Permission denied. Only the author can modify the comment.";
+        }
+
+        comment.setCommentText(commentText);
+        comment.setTimestamp(LocalDateTime.now()); // Update the timestamp
+        commentRepository.save(comment);
+        return "Comment modified successfully!";
+    }
+
+    @Transactional
+    public String deleteComment(Long commentId, Authentication authentication) {
+        Optional<Users> userOptional = userRepository.findByUsername(authentication.getName());
+        Optional<Comment> commentOptional = commentRepository.findById(commentId);
+
+        if (userOptional.isEmpty() || commentOptional.isEmpty() ||
+                (!userOptional.get().getRoles().contains(Role.CONTRIBUTOR) && !userOptional.get().getRoles().contains(Role.SONG_WRITER))) {
+            return "Permission denied. Only contributors and song writers can delete comments.";
+        }
+
+        Comment comment = commentOptional.get();
+        if (!comment.getCommenter().equals(userOptional.get())) {
+            return "Permission denied. Only the author can delete the comment.";
+        }
+
+        commentRepository.delete(comment);
+        return "Comment deleted successfully!";
     }
 }

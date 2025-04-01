@@ -1,0 +1,78 @@
+type Comment {
+    id: ID!
+    song: Song!
+    commenter: User!
+    commentText: String!
+    timestamp: String!
+}
+
+
+
+type Song {
+    id: ID!
+    title: String!
+    lyrics: String!
+    author: User
+    createdAt: String
+    updatedAt: String
+    likesCount: Int
+}
+
+type Suggestion {
+    id: ID!
+    song: Song!
+    suggester: User!
+    suggestionText: String
+    timestamp: String
+}
+
+type User {
+    id: ID!
+    username: String!
+    email: String!
+    roles: String
+    songs: [Song!]!
+    comments: [Comment]
+    suggestions: [Suggestion]
+}
+
+type Query {
+    getMySongs: [SongDTO]
+    getAllSongs: [Song!]!
+    getSongById(id: ID!): Song
+    getSongsByUser(userId: ID!): [Song]
+    getCommentsForSong(songId: ID!): [Comment!]!
+    getAllSuggestions: [Suggestion!]!
+    getSuggestionsForSong(songId: ID!): [Suggestion!]!
+    getSongTitleSuggestion(request: LyricsRequest!): String
+}
+
+type Mutation {
+    register(username: String!, email: String!, password: String!, role: String!): String!
+    login(username: String!, password: String!): String!
+    createSong(title: String!, lyrics: String!): String!
+    updateSong(id: ID!, title: String!, lyrics: String!): String!
+    deleteSong(id: ID!): String!
+    addComment(songId: ID!, commentText: String!): String!
+    modifyComment(commentId: ID!, commentText: String!): String!
+    deleteComment(commentId: ID!): String!
+    addSuggestion(songId: ID!, suggestionText: String!): String!
+    modifySuggestion(suggestionId: ID!, suggestionText: String!): String!
+    deleteSuggestion(suggestionId: ID!): String!
+    updateUserName(username: String!, newName: String!): User!
+    updateUserEmail(username: String!, newEmail: String!): User!
+    updateUserPassword(username: String!, newPassword: String!): User!
+}
+
+
+
+input LyricsRequest {
+    lyrics: String!
+}
+
+type SongDTO {
+    id: ID!
+    title: String!
+    lyrics: String
+    createdAt: String
+}

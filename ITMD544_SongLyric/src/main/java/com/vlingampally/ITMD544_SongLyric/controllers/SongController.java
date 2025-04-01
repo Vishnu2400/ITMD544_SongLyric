@@ -2,17 +2,17 @@ package com.vlingampally.ITMD544_SongLyric.controllers;
 
 import com.vlingampally.ITMD544_SongLyric.dto.LyricsRequest;
 import com.vlingampally.ITMD544_SongLyric.dto.SongDTO;
-import com.vlingampally.ITMD544_SongLyric.model.Role;
 import com.vlingampally.ITMD544_SongLyric.model.Song;
 import com.vlingampally.ITMD544_SongLyric.model.Users;
-import com.vlingampally.ITMD544_SongLyric.repositories.SongRepository;
-import com.vlingampally.ITMD544_SongLyric.repositories.UserRepository;
 import com.vlingampally.ITMD544_SongLyric.service.SongService;
+import com.vlingampally.ITMD544_SongLyric.service.UserService;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
-import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -21,21 +21,40 @@ import java.util.stream.Collectors;
 @RequestMapping("/songs")
 public class SongController {
 
-    private final SongRepository songRepository;
-    private final UserRepository userRepository;
     private final SongService songService;
+    private final UserService userService;
 
-    public SongController(SongRepository songRepository, UserRepository userRepository, SongService songService) {
-        this.songRepository = songRepository;
-        this.userRepository = userRepository;
+    public SongController(SongService songService, UserService userService) {
         this.songService = songService;
+        this.userService = userService;
     }
+
+    @GetMapping("/my-songs")
+    public List<Song> getMySongs(@AuthenticationPrincipal UserDetails userDetails) {
+        if (userDetails == null) {
+            throw new RuntimeException("No authenticated user found.");
+        }
+
+        // Fetch user from database
+        Users user = userService.getCurrentUser(userDetails.getUsername())
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        // Fetch songs created by the user
+        return songService.getSongsByUser(user);
+    }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<Song> getSongById(@PathVariable Long id) {
+        Optional<Song> song = songService.getSongById(id);
+        return song.map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.notFound().build());
+    }
+
 
     // Create a new song (only for SONG_WRITER role)
     @PostMapping("/create")
     @Transactional
-    public String createSong(@RequestBody Song song, @RequestParam String chosenName, Authentication authentication) {
-        return songService.createSong(song, chosenName, authentication);
+    public String createSong(@RequestBody Song song, Authentication authentication) {
+        return songService.createSong(song, authentication);
     }
 
     // Endpoint to get song title suggestions based on lyrics
@@ -56,42 +75,19 @@ public class SongController {
     @PutMapping("/update/{songId}")
     @Transactional
     public String updateSong(@PathVariable Long songId, @RequestBody Song updatedSong, Authentication authentication) {
-        Optional<Users> userOptional = userRepository.findByUsername(authentication.getName());
-        Optional<Song> songOptional = songRepository.findById(songId);
-
-        if (userOptional.isEmpty() || songOptional.isEmpty()) {
-            return "User or song not found!";
-        }
-
-        Users user = userOptional.get();
-        Song song = songOptional.get();
-
-        if (!user.getRoles().contains(Role.SONG_WRITER) || !song.getAuthor().equals(user)) {
-            return "Permission denied. Only the author can update the song.";
-        }
-
-        // Update the song details
-        song.setTitle(updatedSong.getTitle());
-        song.setLyrics(updatedSong.getLyrics());
-        song.setUpdatedAt(LocalDateTime.now());
-        songRepository.save(song);
-        return "Song updated successfully!";
+        return songService.updateSong(songId, updatedSong, authentication);
     }
 
     // Add a like to a song
     @PostMapping("/like/{songId}")
     public String addLike(@PathVariable Long songId, Authentication authentication) {
-        Optional<Users> user = userRepository.findByUsername(authentication.getName());
-        Optional<Song> song = songRepository.findById(songId);
+        return songService.addLike(songId, authentication);
+    }
 
-        if (user.isEmpty() || song.isEmpty() || !user.get().getRoles().contains(Role.CONTRIBUTOR) && !user.get().getRoles().contains(Role.SONG_WRITER)) {
-            return "Permission denied. Only contributors and song writers can like songs.";
-        }
-
-        Song existingSong = song.get();
-        existingSong.setLikesCount(existingSong.getLikesCount() + 1);
-        songRepository.save(existingSong);
-        return "Song liked!";
+    @DeleteMapping("/delete/{songId}")
+    @Transactional
+    public String deleteSong(@PathVariable Long songId, Authentication authentication) {
+        return songService.deleteSong(songId, authentication);
     }
 
     private SongDTO convertToDTO(Song song) {
