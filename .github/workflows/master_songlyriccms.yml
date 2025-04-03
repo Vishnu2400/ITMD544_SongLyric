@@ -25,6 +25,7 @@ jobs:
           distribution: 'microsoft'
 
       - name: Build with Maven
+        working-directory: ITMD544_SongLyricCMS
         run: mvn clean install
 
       - name: Upload artifact for deployment job
@@ -55,6 +56,13 @@ jobs:
           client-id: ${{ secrets.AZUREAPPSERVICE_CLIENTID_4BE557F91535436C8E9F8B4B42057842 }}
           tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_76E091A2DD894D14A65BA387C4B4A778 }}
           subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_F379D1DA7C1B4340AB63D58B5B003006 }}
+
+      - name: Set Environment Variables for Secrets
+        run: |
+            echo "DB_URL=${{ secrets.DB_URL }}" >> $GITHUB_ENV
+            echo "DB_USERNAME=${{ secrets.DB_USERNAME }}" >> $GITHUB_ENV
+            echo "DB_PASSWORD=${{ secrets.DB_PASSWORD }}" >> $GITHUB_ENV
+            echo "HIVE_API_KEY=${{ secrets.HIVE_API_KEY }}" >> $GITHUB_ENV
 
       - name: Deploy to Azure Web App
         id: deploy-to-webapp
