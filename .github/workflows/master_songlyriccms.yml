@@ -1,4 +1,7 @@
-name: Build and deploy JAR app to Azure Web App - SongLyricCMS
+# Docs for the Azure Web Apps Deploy action: https://github.com/Azure/webapps-deploy
+# More GitHub Actions for Azure: https://github.com/Azure/actions
+
+name: Build and deploy JAR app to Azure Web App - SongLyriccms
 
 on:
   push:
@@ -22,17 +25,13 @@ jobs:
           distribution: 'microsoft'
 
       - name: Build with Maven
-        working-directory: ./ITMD544_SongLyric
-        run: mvn clean install -DskipTests
-
-      - name: List target directory
-        run: Get-ChildItem -Force ./ITMD544_SongLyric/target
+        run: mvn clean install
 
       - name: Upload artifact for deployment job
         uses: actions/upload-artifact@v4
         with:
           name: java-app
-          path: './ITMD544_SongLyric/target/*.jar'
+          path: '${{ github.workspace }}/target/*.jar'
 
   deploy:
     runs-on: windows-latest
@@ -49,28 +48,19 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: java-app
-
-      - name: List downloaded files (debug)
-        run: Get-ChildItem -Force
-
+      
       - name: Login to Azure
         uses: azure/login@v2
         with:
-          client-id: ${{ secrets.AZUREAPPSERVICE_CLIENTID_4BE557F91535436C8E9F8B4B42057842 }}
-          tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_76E091A2DD894D14A65BA387C4B4A778 }}
-          subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_F379D1DA7C1B4340AB63D58B5B003006 }}
-
-      - name: Set Environment Variables for Secrets
-        run: |
-          echo "DB_URL=${{ secrets.DB_URL }}" >> $GITHUB_ENV
-          echo "DB_USERNAME=${{ secrets.DB_USERNAME }}" >> $GITHUB_ENV
-          echo "DB_PASSWORD=${{ secrets.DB_PASSWORD }}" >> $GITHUB_ENV
-          echo "HIVE_API_KEY=${{ secrets.HIVE_API_KEY }}" >> $GITHUB_ENV
+          client-id: ${{ secrets.AZUREAPPSERVICE_CLIENTID_FEE4ABA0B24643B98B6E58301183F3E1 }}
+          tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_BF7506F36EB44EC38904BEB9B9A296A2 }}
+          subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_2BF96A5754BB457290116037806DE976 }}
 
       - name: Deploy to Azure Web App
         id: deploy-to-webapp
         uses: azure/webapps-deploy@v3
         with:
-          app-name: 'SongLyricCMS'
+          app-name: 'SongLyriccms'
           slot-name: 'Production'
           package: '*.jar'
+          
