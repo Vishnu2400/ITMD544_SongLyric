@@ -51,7 +51,7 @@ jobs:
           name: java-app
 
       - name: List downloaded files (debug)
-        run: ls -la
+        run: Get-ChildItem -Force
 
       - name: Login to Azure
         uses: azure/login@v2
