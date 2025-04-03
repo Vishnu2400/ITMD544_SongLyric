@@ -74,4 +74,4 @@ jobs:
         with:
           app-name: 'SongLyricCMS'
           slot-name: 'Production'
-          package: '.jar'
+          package: java-app/ITMD544_SongLyric-0.0.1-SNAPSHOT.jar
