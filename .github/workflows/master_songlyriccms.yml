@@ -71,7 +71,8 @@ jobs:
         with:
           app-name: 'SongLyricCMS'
           slot-name: 'Production'
-          package: './java-app/*.jar'
+          package: './java-app'
+
 
 
           
