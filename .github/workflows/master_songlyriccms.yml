@@ -71,7 +71,7 @@ jobs:
         with:
           app-name: 'SongLyricCMS'
           slot-name: 'Production'
-          package: 'java-app/*.jar' # Path to the JAR file from the downloaded artifact
+          package: 'java-app' # Path to the JAR file from the downloaded artifact
 
 
 
