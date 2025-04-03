@@ -32,7 +32,8 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: java-app
-          path: '${{ github.workspace }}/target/*.jar'
+          path: '${{ github.workspace }}/ITMD544_SongLyric/target/*.jar'
+
 
   deploy:
     runs-on: windows-latest
@@ -70,5 +71,6 @@ jobs:
         with:
           app-name: 'SongLyricCMS'
           slot-name: 'Production'
-          package: '*.jar'
+          package: 'java-app/*.jar'
+
           
