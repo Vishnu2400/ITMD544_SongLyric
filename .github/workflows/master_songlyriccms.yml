@@ -53,7 +53,6 @@ jobs:
       - name: List downloaded files (debug)
         run: Get-ChildItem -Force
 
-
       - name: Login to Azure
         uses: azure/login@v2
         with:
