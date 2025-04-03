@@ -30,7 +30,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: java-app
-          path: ITMD544_SongLyric/target/ITMD544_SongLyric-0.0.1-SNAPSHOT.jar
+          path: './ITMD544_SongLyric/target/*.jar'
 
   deploy:
     runs-on: windows-latest
@@ -55,9 +55,9 @@ jobs:
       - name: Login to Azure
         uses: azure/login@v2
         with:
-          client-id: ${{ secrets.AZUREAPPSERVICE_CLIENTID }}
-          tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID }}
-          subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID }}
+          client-id: ${{ secrets.AZUREAPPSERVICE_CLIENTID_FEE4ABA0B24643B98B6E58301183F3E1 }}
+          tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_BF7506F36EB44EC38904BEB9B9A296A2 }}
+          subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_2BF96A5754BB457290116037806DE976 }}
 
       - name: Set Environment Variables for Secrets
         run: |
@@ -70,6 +70,6 @@ jobs:
         id: deploy-to-webapp
         uses: azure/webapps-deploy@v3
         with:
-          app-name: 'SongLyricCMS'
+          app-name: 'SongLyriccms'
           slot-name: 'Production'
           package: '*.jar'
