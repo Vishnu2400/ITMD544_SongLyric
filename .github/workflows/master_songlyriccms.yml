@@ -25,7 +25,7 @@ jobs:
           distribution: 'microsoft'
 
       - name: Build with Maven
-        working-directory: ITMD544_SongLyricCMS
+        working-directory: ./ITMD544_SongLyric
         run: mvn clean install
 
       - name: Upload artifact for deployment job
