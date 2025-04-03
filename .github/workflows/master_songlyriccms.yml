@@ -25,6 +25,9 @@ jobs:
         working-directory: ./ITMD544_SongLyric
         run: mvn clean install -DskipTests
 
+      - name: List files in target directory (debug)
+        run: ls -la ./ITMD544_SongLyric/target
+
       - name: Upload artifact for deployment job
         uses: actions/upload-artifact@v4
         with:
@@ -46,6 +49,9 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: java-app
+
+      - name: List downloaded files (debug)
+        run: ls -la
 
       - name: Login to Azure
         uses: azure/login@v2
