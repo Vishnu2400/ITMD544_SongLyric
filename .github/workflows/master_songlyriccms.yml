@@ -53,9 +53,6 @@ jobs:
       - name: List downloaded files (debug)
         run: Get-ChildItem -Force
 
-      - name: Debug - List Files
-        run: ls ITMD544_SongLyric/ITMD544_SongLyric/
-
 
       - name: Login to Azure
         uses: azure/login@v2
@@ -77,4 +74,4 @@ jobs:
         with:
           app-name: 'SongLyricCMS'
           slot-name: 'Production'
-          package: 'java-app/ITMD544_SongLyric-0.0.1-SNAPSHOT.jar'
+          package: 'ITMD544_SongLyric/target/*.jar'
