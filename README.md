@@ -299,20 +299,11 @@ Below is the Entity-Relationship Diagram (ERD) of the database schema:
 
 ## Demonstration
 
-### Live Demo
+### Live Link
 
-<!-- Placeholder for Live Demo URL -->
+Deployed the application in Azure also the created a Postgres Database in the Azure 
 
-
-### Demo Script
-
-<!-- Placeholder for Demo Script -->
-
-
-### Example API Calls
-
-<!-- Placeholder for Example API Calls -->
-
+https://songlyric-hqdsdubedmeahyfn.eastus-01.azurewebsites.net
 
 ## Report
 
