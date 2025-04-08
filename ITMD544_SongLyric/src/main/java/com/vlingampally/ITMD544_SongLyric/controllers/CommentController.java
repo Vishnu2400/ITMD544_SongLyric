@@ -31,7 +31,7 @@ public class CommentController {
 
     @GetMapping("/song/{songId}")
     public List<CommentDTO> getCommentsForSong(@PathVariable Long songId) {
-        return commentService.getCommentsForSong(songId).stream().map(this::convertToDTO).collect(Collectors.toList());
+        return commentService.getCommentsForSong(songId);
     }
 
     @DeleteMapping("/delete/{commentId}")

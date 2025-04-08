@@ -71,8 +71,7 @@ public class QueryResolver {
 
     @QueryMapping
     public List<CommentDTO> getCommentsForSong(@Argument Long songId) {
-        List<Comment> comments = commentService.getCommentsForSong(songId);
-        return comments.stream().map(this::convertToDto).collect(Collectors.toList());
+        return commentService.getCommentsForSong(songId);
     }
 
     @QueryMapping
@@ -92,12 +91,24 @@ public class QueryResolver {
         songDto.setId(song.getId());
         songDto.setTitle(song.getTitle());
         songDto.setLyrics(song.getLyrics());
+        songDto.setAuthorId(song.getAuthor().getId());
         songDto.setAuthorUsername(song.getAuthor().getUsername());
         songDto.setLikesCount(song.getLikesCount());
         songDto.setCreatedAt(song.getCreatedAt());
         songDto.setUpdatedAt(song.getUpdatedAt());
+
+        // Fetch and set comments
+        List<CommentDTO> comments = commentService.getCommentsForSong(songDto.getId());
+        songDto.setComments(comments);
+
+        // Fetch and set suggestions
+        List<SuggestionDTO> suggestions = suggestionService.getSuggestionsForSong(song.getId());
+
+        songDto.setSuggestions(suggestions);
+
         return songDto;
     }
+
 
     private CommentDTO convertToDto(Comment comment) {
         CommentDTO commentDto = new CommentDTO();

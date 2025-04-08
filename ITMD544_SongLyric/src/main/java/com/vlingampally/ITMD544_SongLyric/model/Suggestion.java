@@ -14,7 +14,7 @@ public class Suggestion {
     private Song song;
     @ManyToOne
     @JoinColumn(name = "user_id")
-    private Users Suggester;
+    private Users suggester;
     @Lob
     private String suggestionText;
     private LocalDateTime timestamp;
@@ -31,8 +31,12 @@ public class Suggestion {
         this.song = song;
     }
 
+    public Users getSuggester() {
+        return suggester;
+    }
+
     public void setSuggester(Users suggester) {
-        Suggester = suggester;
+        this.suggester = suggester;
     }
 
     public void setSuggestionText(String suggestionText) {
@@ -47,9 +51,6 @@ public class Suggestion {
         return id;
     }
 
-    public Users getSuggester() {
-        return Suggester;
-    }
 
     public String getSuggestionText() {
         return suggestionText;

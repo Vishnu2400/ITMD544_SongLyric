@@ -71,6 +71,28 @@ public class SongController {
         return songService.getAllSongs().stream().map(this::convertToDTO).collect(Collectors.toList());
     }
 
+    @GetMapping("/with-comments")
+    public ResponseEntity<List<SongDTO>> getAllSongsWithComments() {
+        return ResponseEntity.ok(songService.getAllSongsWithComments());
+    }
+
+    @GetMapping("/with-suggestions")
+    public ResponseEntity<List<SongDTO>> getAllSongsWithSuggestions() {
+        return ResponseEntity.ok(songService.getAllSongsWithSuggestions());
+    }
+
+    @GetMapping("/with-comments-suggestions")
+    public ResponseEntity<List<SongDTO>> getAllSongsWithCommentsAndSuggestions() {
+        return ResponseEntity.ok(songService.getAllSongsWithCommentsAndSuggestions());
+    }
+
+    @GetMapping("/{songId}/with-comments-suggestions")
+    public ResponseEntity<SongDTO> getSongWithCommentsAndSuggestions(@PathVariable Long songId) {
+        return ResponseEntity.ok(songService.getSongWithCommentsAndSuggestions(songId));
+    }
+
+
+
     // Update a song (only for SONG_WRITER role)
     @PutMapping("/update/{songId}")
     @Transactional

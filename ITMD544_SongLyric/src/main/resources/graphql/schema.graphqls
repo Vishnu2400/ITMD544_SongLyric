@@ -38,7 +38,7 @@ type User {
 
 type Query {
     getMySongs: [SongDTO]
-    getAllSongs: [Song!]!
+    getAllSongs: [SongDTO]!
     getSongById(id: ID!): Song
     getSongsByUser(userId: ID!): [Song]
     getCommentsForSong(songId: ID!): [Comment!]!
@@ -75,4 +75,7 @@ type SongDTO {
     title: String!
     lyrics: String
     createdAt: String
+    authorId: ID!
+    comments: [Comment]
+    suggestions: [Suggestion]
 }

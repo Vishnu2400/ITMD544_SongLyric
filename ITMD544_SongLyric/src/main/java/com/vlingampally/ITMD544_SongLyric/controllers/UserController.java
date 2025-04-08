@@ -86,43 +86,44 @@ public class UserController {
         return ResponseEntity.notFound().build();  // return 404 if user is not found
     }
 
-    // Add a role to a user (for admin or authorized roles)
-    @PostMapping("/{username}/roles")
-    public ResponseEntity<UserDTO> addRoleToUser(@PathVariable String username, @RequestBody Role role) {
-        Users user = userService.addRoleToUser(username, role);
+    // Add a role to current user
+    @PostMapping("/me/roles")
+    public ResponseEntity<UserDTO> addRoleToUser(@AuthenticationPrincipal User authenticatedUser, @RequestBody Role role) {
+        Users user = userService.addRoleToUser(authenticatedUser.getUsername(), role);
         if (user != null) {
             return ResponseEntity.ok(convertToDTO(user));
         }
-        return ResponseEntity.notFound().build();  // return 404 if user is not found
+        return ResponseEntity.notFound().build();
     }
 
     // Remove a role from a user (for admin or authorized roles)
-    @DeleteMapping("/{username}/roles")
-    public ResponseEntity<UserDTO> removeRoleFromUser(@PathVariable String username, @RequestBody Role role) {
-        Users user = userService.removeRoleFromUser(username, role);
+    @DeleteMapping("/me/roles")
+    public ResponseEntity<UserDTO> removeRoleFromUser(@AuthenticationPrincipal User authenticatedUser, @RequestBody Role role) {
+        Users user = userService.removeRoleFromUser(authenticatedUser.getUsername(), role);
         if (user != null) {
             return ResponseEntity.ok(convertToDTO(user));
         }
-        return ResponseEntity.notFound().build();  // return 404 if user is not found
+        return ResponseEntity.notFound().build();
     }
 
     // Modify a role of a user (for admin or authorized roles)
-    @PutMapping("/{username}/roles")
-    public ResponseEntity<UserDTO> modifyUserRole(@PathVariable String username, @RequestBody Role newRole) {
-        Users user = userService.modifyUserRole(username, newRole);
+    @PutMapping("/me/roles")
+    public ResponseEntity<UserDTO> modifyUserRole(@AuthenticationPrincipal User authenticatedUser, @RequestBody Role newRole) {
+        Users user = userService.modifyUserRole(authenticatedUser.getUsername(), newRole);
         if (user != null) {
             return ResponseEntity.ok(convertToDTO(user));
         }
-        return ResponseEntity.notFound().build();  // return 404 if user is not found
+        return ResponseEntity.notFound().build();
     }
 
-    @DeleteMapping("/{username}")
-    public ResponseEntity<Void> deleteUser(@PathVariable String username) {
-        boolean isDeleted = userService.deleteUser(username);
+    @DeleteMapping("/me")
+    public ResponseEntity<Void> deleteUser(@AuthenticationPrincipal User authenticatedUser) {
+        boolean isDeleted = userService.deleteUser(authenticatedUser.getUsername());
         if (isDeleted) {
             return ResponseEntity.ok().build();
         }
-        return ResponseEntity.notFound().build();  // return 404 if user is not found
+        else
+            return ResponseEntity.notFound().build();
     }
 
     // Convert Users entity to UserDTO

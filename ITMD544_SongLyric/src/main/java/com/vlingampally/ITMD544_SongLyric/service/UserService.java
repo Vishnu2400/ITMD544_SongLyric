@@ -4,7 +4,6 @@ import com.vlingampally.ITMD544_SongLyric.model.Role;
 import com.vlingampally.ITMD544_SongLyric.model.Users;
 import com.vlingampally.ITMD544_SongLyric.repositories.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -19,26 +18,12 @@ public class UserService {
 
     @Autowired
     private BCryptPasswordEncoder passwordEncoder;
-
-    public Users registerUser(Users user) {
-        // Encrypt password before saving the user
-        user.setPassword(passwordEncoder.encode(user.getPassword()));
-        return userRepository.save(user);
-    }
-
-    //find user by userid
-    public Users findUserById(Long userId) {
-        return userRepository.findById(userId)
-                .orElseThrow(() -> new UsernameNotFoundException("User with ID " + userId + " not found"));
-    }
-
-    public Users findUserByUsername(String username) {
-        return userRepository.findByUsername(username).orElseThrow(() -> new UsernameNotFoundException("User not found"));
-    }
-
-    public boolean verifyPassword(String enteredPassword, String storedPassword) {
-        return passwordEncoder.matches(enteredPassword, storedPassword);
-    }
+    @Autowired
+    private SongService songService;
+    @Autowired
+    private CommentService commentService;
+    @Autowired
+    private SuggestionService suggestionService;
 
     public List<Users> getAllUsers() {
         return userRepository.findAll();
@@ -122,10 +107,17 @@ public class UserService {
 
     public boolean deleteUser(String username) {
         Optional<Users> userOpt = userRepository.findByUsername(username);
-        if (userOpt.isPresent()) {
-            userRepository.delete(userOpt.get());  // delete user if found
-            return true;
+        if (userOpt.isEmpty()) {
+            return false; // User not found, cannot delete
         }
-        return false;  // return false if user is not found
+
+        Users user = userOpt.get();
+        songService.deleteSongsByUser(user);
+        commentService.deleteCommentsByUser(user);
+        suggestionService.deleteSuggestionsByUser(user);
+
+        userRepository.delete(user);
+        return true; // User deleted successfully
     }
+
 }

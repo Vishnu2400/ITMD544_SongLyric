@@ -1,5 +1,6 @@
 package com.vlingampally.ITMD544_SongLyric.service;
 
+import com.vlingampally.ITMD544_SongLyric.dto.CommentDTO;
 import com.vlingampally.ITMD544_SongLyric.model.Comment;
 import com.vlingampally.ITMD544_SongLyric.model.Role;
 import com.vlingampally.ITMD544_SongLyric.model.Song;
@@ -46,8 +47,18 @@ public class CommentService {
     }
 
     @Transactional(readOnly = true)
-    public List<Comment> getCommentsForSong(Long songId) {
-        return commentRepository.findAllBySongId(songId);
+    public List<CommentDTO> getCommentsForSong(Long songId) {
+        return commentRepository.findAllBySongId(songId).stream()
+                .map(comment -> {
+                    CommentDTO commentDTO = new CommentDTO();
+                    commentDTO.setId(comment.getId());
+                    commentDTO.setSongTitle(comment.getSong().getTitle());
+                    commentDTO.setCommenterUsername(comment.getCommenter().getUsername());
+                    commentDTO.setCommentText(comment.getCommentText());
+                    commentDTO.setTimestamp(comment.getTimestamp());
+                    return commentDTO;
+                })
+                .toList();
     }
 
     @Transactional
@@ -88,5 +99,12 @@ public class CommentService {
 
         commentRepository.delete(comment);
         return "Comment deleted successfully!";
+    }
+
+    @Transactional
+    public void deleteCommentsByUser(Users user) {
+        Long userId = user.getId();
+        List<Comment> comments = commentRepository.findAllByCommenterId(userId);
+        commentRepository.deleteAll(comments);
     }
 }

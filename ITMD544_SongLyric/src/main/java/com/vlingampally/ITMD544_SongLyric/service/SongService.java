@@ -1,9 +1,11 @@
 package com.vlingampally.ITMD544_SongLyric.service;
 
-import com.vlingampally.ITMD544_SongLyric.model.Role;
-import com.vlingampally.ITMD544_SongLyric.model.Song;
-import com.vlingampally.ITMD544_SongLyric.model.Suggestion;
-import com.vlingampally.ITMD544_SongLyric.model.Users;
+import com.vlingampally.ITMD544_SongLyric.dto.CommentDTO;
+import com.vlingampally.ITMD544_SongLyric.dto.SongDTO;
+import com.vlingampally.ITMD544_SongLyric.dto.SuggestionDTO;
+import com.vlingampally.ITMD544_SongLyric.exception.SongNotFoundException;
+import com.vlingampally.ITMD544_SongLyric.model.*;
+import com.vlingampally.ITMD544_SongLyric.repositories.CommentRepository;
 import com.vlingampally.ITMD544_SongLyric.repositories.SongRepository;
 import com.vlingampally.ITMD544_SongLyric.repositories.SuggestionRepository;
 import com.vlingampally.ITMD544_SongLyric.repositories.UserRepository;
@@ -15,6 +17,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 public class SongService {
@@ -23,12 +26,18 @@ public class SongService {
     private final UserRepository userRepository;
     private final SuggestionRepository suggestionRepository;
     private final HiveAIService hiveAIService;
+    private final CommentRepository commentRepository;
+    private final CommentService commentService;
+    private final SuggestionService suggestionService;
 
-    public SongService(SongRepository songRepository, UserRepository userRepository, SuggestionRepository suggestionRepository, HiveAIService hiveAIService) {
+    public SongService(SongRepository songRepository, UserRepository userRepository, SuggestionRepository suggestionRepository, HiveAIService hiveAIService, CommentRepository commentRepository, CommentService commentService, SuggestionService suggestionService) {
         this.songRepository = songRepository;
         this.userRepository = userRepository;
         this.suggestionRepository = suggestionRepository;
         this.hiveAIService = hiveAIService;
+        this.commentRepository = commentRepository;
+        this.commentService = commentService;
+        this.suggestionService = suggestionService;
     }
 
     public List<Song> getAllSongs() {
@@ -40,7 +49,8 @@ public class SongService {
         if (user == null) {
             return List.of(); // Return an empty list if user is null
         }
-        return songRepository.findByAuthor(user);
+        Long authorId = user.getId();
+        return songRepository.findByAuthorId(authorId);
     }
 
     //get song by id for a user
@@ -147,7 +157,90 @@ public class SongService {
             return "Permission denied. Only the author can delete the song.";
         }
 
+        // Delete comments and suggestions related to the song
+        List<Comment> comments = commentRepository.findAllBySongId(song.getId());
+        commentRepository.deleteAll(comments);
+
+        List<Suggestion> suggestions = suggestionRepository.findAllBySongId(song.getId());
+        suggestionRepository.deleteAll(suggestions);
+
+        // Delete the song itself
         songRepository.delete(song);
-        return "Song deleted successfully!";
+
+        return "Song and related data (comments, suggestions) deleted successfully!";
+    }
+
+    @Transactional
+    public void deleteSongsByUser(Users user) {
+        Long AuthorId = user.getId();
+        List<Song> songs = songRepository.findByAuthorId(AuthorId);
+        for (Song song : songs) {
+            // Delete comments related to the song
+            List<Comment> comments = commentRepository.findAllBySongId(song.getId());
+            commentRepository.deleteAll(comments);
+
+            // Delete suggestions related to the song
+            List<Suggestion> suggestions = suggestionRepository.findAllBySongId(song.getId());
+            suggestionRepository.deleteAll(suggestions);
+
+            // Delete the song
+            songRepository.delete(song);
+        }
+    }
+
+    public List<SongDTO> getAllSongsWithComments() {
+        List<Song> songs = songRepository.findAll();
+
+        return songs.stream().map(song -> {
+            SongDTO dto = mapToDTO(song);
+            List<CommentDTO> comments = commentService.getCommentsForSong(song.getId());
+            dto.setComments(comments);
+            return dto;
+        }).collect(Collectors.toList());
+    }
+
+    public List<SongDTO> getAllSongsWithSuggestions() {
+        List<Song> songs = songRepository.findAll();
+
+        return songs.stream().map(song -> {
+            SongDTO dto = mapToDTO(song);
+            List<SuggestionDTO> suggestions = suggestionService.getSuggestionsForSong(song.getId());
+            dto.setSuggestions(suggestions);
+            return dto;
+        }).collect(Collectors.toList());
+    }
+
+    public List<SongDTO> getAllSongsWithCommentsAndSuggestions() {
+        List<Song> songs = songRepository.findAll();
+
+        return songs.stream().map(song -> {
+            SongDTO dto = mapToDTO(song);
+            dto.setComments(commentService.getCommentsForSong(song.getId()));
+            dto.setSuggestions(suggestionService.getSuggestionsForSong(song.getId()));
+            return dto;
+        }).collect(Collectors.toList());
+    }
+
+    public SongDTO getSongWithCommentsAndSuggestions(Long songId) {
+        Song song = songRepository.findById(songId)
+                .orElseThrow(() -> new SongNotFoundException(songId));
+
+        SongDTO dto = mapToDTO(song);
+        dto.setComments(commentService.getCommentsForSong(songId));
+        dto.setSuggestions(suggestionService.getSuggestionsForSong(songId));
+        return dto;
+    }
+
+
+    private SongDTO mapToDTO(Song song) {
+        SongDTO dto = new SongDTO();
+        dto.setId(song.getId());
+        dto.setTitle(song.getTitle());
+        dto.setLyrics(song.getLyrics());
+        dto.setAuthorUsername(song.getAuthor().getUsername());
+        dto.setLikesCount(song.getLikesCount());
+        dto.setCreatedAt(song.getCreatedAt());
+        dto.setUpdatedAt(song.getUpdatedAt());
+        return dto;
     }
 }

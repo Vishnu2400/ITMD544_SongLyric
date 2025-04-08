@@ -1,5 +1,6 @@
 package com.vlingampally.ITMD544_SongLyric.service;
 
+import com.vlingampally.ITMD544_SongLyric.dto.SuggestionDTO;
 import com.vlingampally.ITMD544_SongLyric.model.Role;
 import com.vlingampally.ITMD544_SongLyric.model.Song;
 import com.vlingampally.ITMD544_SongLyric.model.Suggestion;
@@ -9,6 +10,7 @@ import com.vlingampally.ITMD544_SongLyric.repositories.SongRepository;
 import com.vlingampally.ITMD544_SongLyric.repositories.UserRepository;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -77,5 +79,31 @@ public class SuggestionService {
 
         suggestionRepository.delete(suggestion.get());
         return "Suggestion deleted!";
+    }
+
+    @Transactional
+    public void deleteSuggestionsByUser(Users user) {
+        Long userId = user.getId();
+        List<Suggestion> suggestions = suggestionRepository.findAllBySuggesterId(userId);
+        suggestionRepository.deleteAll(suggestions);
+    }
+
+    public List<SuggestionDTO> getSuggestionsForSong(Long songId) {
+        List<Suggestion> suggestions = findAllBySongId(songId);
+        if (suggestions.isEmpty()) {
+            return List.of(); // Return empty list if no suggestions found
+        }
+
+        // Map Suggestion to SuggestionDTO
+        return suggestions.stream().map(suggestion -> {
+            SuggestionDTO dto = new SuggestionDTO();
+            dto.setId(suggestion.getId());
+            dto.setSongTitle(suggestion.getSong().getTitle());
+            dto.setSuggesterUsername(suggestion.getSuggester().getUsername());
+            dto.setSuggestionText(suggestion.getSuggestionText());
+            dto.setTimestamp(suggestion.getTimestamp());
+            return dto;
+        }).toList();
+
     }
 }
