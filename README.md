@@ -325,4 +325,4 @@ I have implemented JWT and Spring Security for token-based authorization.
 
 ### Future Improvements
 
-There are many things to improve, such as implementing lyrics generation with AI and adding more models for version control, similar to GitHub, for song lyrics.
+There are many things to improve, such as implementing lyrics generation with AI and adding more models for version control, similar to GitHub, for song lyrics
