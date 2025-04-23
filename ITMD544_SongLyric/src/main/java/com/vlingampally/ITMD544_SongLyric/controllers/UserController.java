@@ -56,7 +56,7 @@ public class UserController {
         return ResponseEntity.notFound().build();  // return 404 if user is not found
     }
 
-    // Update user name for authenticated user
+    // Update username for authenticated user
     @PutMapping("/me/name")
     public ResponseEntity<UserDTO> updateUserName(@AuthenticationPrincipal User authenticatedUser, @RequestBody String newName) {
         Users user = userService.updateUserName(authenticatedUser.getUsername(), newName);

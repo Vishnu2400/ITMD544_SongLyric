@@ -59,11 +59,9 @@ public class SongService {
         return songRepository.findById(id);
     }
 
-
-
     @Transactional
-    public String getSongTitleSuggestion(String lyrics) {
-        return hiveAIService.getSongTitleSuggestion(lyrics);
+    public List<String> getSongTitleSuggestions(String lyrics) {
+        return hiveAIService.getSongTitleSuggestions(lyrics);
     }
 
     @Transactional
@@ -215,6 +213,7 @@ public class SongService {
 
         return songs.stream().map(song -> {
             SongDTO dto = mapToDTO(song);
+            dto.setAuthorId(song.getAuthor().getId());
             dto.setComments(commentService.getCommentsForSong(song.getId()));
             dto.setSuggestions(suggestionService.getSuggestionsForSong(song.getId()));
             return dto;

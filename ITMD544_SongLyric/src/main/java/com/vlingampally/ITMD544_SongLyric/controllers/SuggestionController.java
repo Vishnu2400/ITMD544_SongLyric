@@ -3,6 +3,7 @@ package com.vlingampally.ITMD544_SongLyric.controllers;
 import com.vlingampally.ITMD544_SongLyric.dto.SuggestionDTO;
 import com.vlingampally.ITMD544_SongLyric.model.Suggestion;
 import com.vlingampally.ITMD544_SongLyric.service.SuggestionService;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
@@ -20,7 +21,7 @@ public class SuggestionController {
     }
 
     @PostMapping("/add/{songId}")
-    public String addSuggestion(@PathVariable Long songId, @RequestBody Suggestion suggestion, Authentication authentication) {
+    public ResponseEntity<String> addSuggestion(@PathVariable Long songId, @RequestBody Suggestion suggestion, Authentication authentication) {
         return suggestionService.addSuggestion(songId, suggestion, authentication);
     }
 

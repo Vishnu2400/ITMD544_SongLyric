@@ -1,8 +1,11 @@
 package com.vlingampally.ITMD544_SongLyric.model;
 
 import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
+
 import java.time.LocalDateTime;
 
+@AllArgsConstructor
 @Entity
 public class Song {
     @Id

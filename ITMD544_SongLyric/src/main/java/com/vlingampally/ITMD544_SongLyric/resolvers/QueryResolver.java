@@ -58,12 +58,15 @@ public class QueryResolver {
     }
 
     @QueryMapping
-    public String getSongTitleSuggestion(@Argument LyricsRequest request) {
-        String songTitles = songService.getSongTitleSuggestion(request.getLyrics());
+    public List<String> getSongTitleSuggestions(@Argument LyricsRequest request) {
+        // Get song title suggestions from the service
+        List<String> songTitles = songService.getSongTitleSuggestions(request.getLyrics());
 
-        // Remove unwanted newlines and additional spaces
-        String cleanTitles = songTitles.replaceAll("\\n|\\r", " ");  // Replace all newline characters (both \n and \r) with a space
-        cleanTitles = cleanTitles.replaceAll("\\s{2,}", " ").trim();  // Replace multiple spaces with a single space
+        // Clean up each title by removing unwanted newlines and additional spaces
+        List<String> cleanTitles = songTitles.stream()
+                .map(title -> title.replaceAll("\\n|\\r", " ")) // Replace all newline characters with a space
+                .map(title -> title.replaceAll("\\s{2,}", " ").trim()) // Replace multiple spaces with a single space and trim
+                .collect(Collectors.toList());
 
         return cleanTitles;
     }

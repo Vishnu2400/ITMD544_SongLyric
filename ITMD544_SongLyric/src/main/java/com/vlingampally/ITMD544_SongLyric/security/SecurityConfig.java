@@ -36,7 +36,16 @@ public class SecurityConfig {
                 )
                 .httpBasic(httpBasic -> httpBasic.disable())
                 .formLogin(formLogin -> formLogin.disable())
-                .logout(logout -> logout.disable());
+                .logout(logout -> logout.disable()
+                )
+                .cors(cors -> cors.configurationSource(new UrlBasedCorsConfigurationSource() {{
+                    CorsConfiguration config = new CorsConfiguration();
+                    config.setAllowCredentials(true);
+                    config.addAllowedOriginPattern("*"); // Allow all origins
+                    config.addAllowedHeader("*"); // Allow all headers
+                    config.addAllowedMethod("*"); // Allow all methods (GET, POST, PUT, DELETE, etc.)
+                    registerCorsConfiguration("/**", config);
+                }}));
 
         http.addFilterBefore(hiveApiKeyAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
         http.addFilterBefore(jwtAuthenticationFilter, HiveApiKeyAuthenticationFilter.class);

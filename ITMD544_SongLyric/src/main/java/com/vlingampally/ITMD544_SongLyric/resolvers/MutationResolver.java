@@ -1,6 +1,5 @@
 package com.vlingampally.ITMD544_SongLyric.resolvers;
 
-import com.vlingampally.ITMD544_SongLyric.dto.LyricsRequest;
 import com.vlingampally.ITMD544_SongLyric.dto.UserDTO;
 import com.vlingampally.ITMD544_SongLyric.model.*;
 import com.vlingampally.ITMD544_SongLyric.repositories.SongRepository;
@@ -15,17 +14,13 @@ import com.vlingampally.ITMD544_SongLyric.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.graphql.data.method.annotation.Argument;
 import org.springframework.graphql.data.method.annotation.MutationMapping;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Controller;
 
-import java.time.LocalDateTime;
-import java.util.HashSet;
 import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
 
 @Controller
 public class MutationResolver {
@@ -110,7 +105,7 @@ public class MutationResolver {
     }
 
     @MutationMapping
-    public String addSuggestion(@Argument Long songId, @Argument String suggestionText, Authentication authentication) {
+    public ResponseEntity<String> addSuggestion(@Argument Long songId, @Argument String suggestionText, Authentication authentication) {
         Suggestion suggestion = new Suggestion();
         suggestion.setSuggestionText(suggestionText);
         return suggestionService.addSuggestion(songId, suggestion, authentication);

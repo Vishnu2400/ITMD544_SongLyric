@@ -60,9 +60,10 @@ public class SongController {
     // Endpoint to get song title suggestions based on lyrics
     @PostMapping("/suggest-title")
     @Transactional
-    public String getSongTitleSuggestion(@RequestBody LyricsRequest request) {
-        return songService.getSongTitleSuggestion(request.getLyrics());
+    public List<String> getSongTitleSuggestions(@RequestBody LyricsRequest request) {
+        return songService.getSongTitleSuggestions(request.getLyrics());
     }
+
 
     // Get all songs (visible to everyone)
     @GetMapping("/all")

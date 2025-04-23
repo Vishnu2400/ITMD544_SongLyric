@@ -8,6 +8,8 @@ import com.vlingampally.ITMD544_SongLyric.model.Users;
 import com.vlingampally.ITMD544_SongLyric.repositories.SuggestionRepository;
 import com.vlingampally.ITMD544_SongLyric.repositories.SongRepository;
 import com.vlingampally.ITMD544_SongLyric.repositories.UserRepository;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -39,19 +41,19 @@ public class SuggestionService {
         return suggestionRepository.findAllBySongId(songId);
     }
 
-    public String addSuggestion(Long songId, Suggestion suggestion, Authentication authentication) {
+    public ResponseEntity<String> addSuggestion(Long songId, Suggestion suggestion, Authentication authentication) {
         Optional<Users> user = userRepository.findByUsername(authentication.getName());
         Optional<Song> song = songRepository.findById(songId);
 
         if (user.isEmpty() || song.isEmpty() || !user.get().getRoles().contains(Role.CONTRIBUTOR)) {
-            return "Permission denied. Only contributors can add suggestions.";
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Permission denied. Only contributors can add suggestions.");
         }
 
         suggestion.setSong(song.get());
         suggestion.setSuggester(user.get());
         suggestion.setTimestamp(LocalDateTime.now()); // Set the current timestamp
         suggestionRepository.save(suggestion);
-        return "Suggestion added!";
+        return ResponseEntity.ok("Suggestion added successfully!");
     }
 
     public String modifySuggestion(Long suggestionId, String suggestionText, Authentication authentication) {
