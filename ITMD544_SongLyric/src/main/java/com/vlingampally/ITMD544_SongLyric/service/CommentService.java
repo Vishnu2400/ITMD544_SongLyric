@@ -72,7 +72,7 @@ public class CommentService {
         }
 
         Comment comment = commentOptional.get();
-        if (!comment.getCommenter().equals(userOptional.get())) {
+        if (!comment.getCommenter().getId().equals(userOptional.get().getId())) {
             return "Permission denied. Only the author can modify the comment.";
         }
 
@@ -93,7 +93,7 @@ public class CommentService {
         }
 
         Comment comment = commentOptional.get();
-        if (!comment.getCommenter().equals(userOptional.get())) {
+        if (!comment.getCommenter().getId().equals(userOptional.get().getId())) {
             return "Permission denied. Only the author can delete the comment.";
         }
 
